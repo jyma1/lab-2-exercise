@@ -1,2 +1,12 @@
 Answer written questions 1 and 2 here.
 
+1. Briefly discuss how SFML's coordinate system works and how it affects angle calculations. Are there any surprising differences from what you would normally expect?
+
+In SFML, the coordinates (0,0) would be on the top left, which means the y-axis would actually point downwards instead of the usual up. This changes the angle calculation as positive angles would now go clockwise instead of the usual counterclockwise, which is what I am normally used to.  
+
+
+
+2. Consider the setup of the game loop. InputSummary summarizes the inputs (events), and then gameState.update looks only at its own state and InputSummary. What is the benefit of this design compared with directly modifying GameState inside processInputs?
+
+
+The benefit of this design compared with directly modifying GameState inside processInputs is that it keeps the code clean as InputSummary will handle the inputs while GameState can focus on what those inputs do. This also helps track down bugs and makes the code easier to understand as it is separated rather than all clumped up. 

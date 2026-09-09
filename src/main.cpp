@@ -145,6 +145,14 @@ struct Bullet : public sf::Drawable {
         //      - lifetime <= 0.0f, or
         //      - bullet is off screen (use shape.getPosition() and
         //        WINDOW_WIDTH and WINDOW_HEIGHT)
+        shape.move(velocity);
+        lifetime -= 1.0f / 60.0f;
+
+        sf::Vector2f bulletPosition = shape.getPosition();
+
+        if (lifetime <= 0.0f || bulletPosition.y > WINDOW_HEIGHT || bulletPosition.y < 0 || bulletPosition.x > WINDOW_WIDTH || bulletPosition.x < 0){            
+            isAlive = false;
+        }
     }
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override {
@@ -247,6 +255,12 @@ public:
         //  - Bullet direction is the same as the spaceship's facing direction.
         //  - Bullet should be shot from the current spaceship position.
 
+        if (inputSummary.shootingDesired && mShootClock.getElapsedTime().asSeconds() >= SHOOT_COOLDOWN) {
+            mBullets.emplace_back(mSpaceship.getPosition(), facingVector.normalized() * BULLET_SPEED);
+            mShootClock.restart();
+        }
+        
+        
         // --- Update Asteroids ---
         for (auto& asteroid : mAsteroids) {
             asteroid.update();
@@ -296,7 +310,7 @@ private:
                     asteroid.isAlive = false;
                     // TODO: Add Explosion Sound Effect
                     // Play explosion sound!
-
+                    mExplosionSound.play();
                     break;  // Bullet can only hit one asteroid
                 }
             }
@@ -310,6 +324,10 @@ private:
             // TODO: Use Circle-Circle intersection test (circlesIntersect)
             // to determine if the spaceship's hitbox collides with an asteroid.
             // If so, kill the asteroid and play an explosion sound.
+            if (circlesIntersect(mSpaceship.getPosition(), mSpaceship.hitboxRadius(), asteroid.shape.getPosition(), asteroid.shape.getRadius())){
+                asteroid.isAlive = false;
+                mExplosionSound.play();
+            }
         }
     }
 
@@ -335,6 +353,14 @@ private:
         // =====
         // TODO: What should we do with dead bullet objects? Just keep them lying around taking up
         // space in memory?
+        std::vector<Bullet> aux;
+        aux.reserve(mBullets.size());
+        for (const auto& bullet : mBullets) {
+            if (bullet.isAlive) {
+                aux.push_back(bullet);
+            }
+        }
+        aux.swap(mBullets);
     }
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override {
